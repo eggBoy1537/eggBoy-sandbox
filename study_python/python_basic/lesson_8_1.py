@@ -13,6 +13,7 @@ if 'security' in body or 'vulnerability' in body:       #ページ内容に指�
 else:
     print('調査対象のセキュリティ用語はありませんでした')
 '''
+
 '''
 #code_8_2:SQLiteを使ったデータベース検索(例文．dbファイル未メンテのため非動作．)
 import sqlite3                                          #SQLiteデータベース操作用モジュールを読み込む．
@@ -24,28 +25,25 @@ with sqlite3.connect('sample.db') as conn:              #'sample.db'というSQL
         print(row[0]); print(row[1])                    #ID列の値(row[0])およびNAME列の値(row[1])を順に表示．
 
 #お試しでdbを作成するコードをChatGPTに聞いた内容↓(1回実行済み)
-'''
-import sqlite3
+#import sqlite3
 
-with sqlite3.connect('sample.db') as conn:
-    cursor = conn.cursor()
+#with sqlite3.connect('sample.db') as conn:
+#    cursor = conn.cursor()
 
     # EMPLOYEESテーブルを作成（なければ）
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS EMPLOYEES (
-            ID INTEGER PRIMARY KEY,
-            NAME TEXT
-        )
-    ''')
+#    cursor.execute('''
+#        CREATE TABLE IF NOT EXISTS EMPLOYEES (
+#            ID INTEGER PRIMARY KEY,
+#            NAME TEXT
+#        )
+#    ''')
 
-    # サンプルデータを追加
-    cursor.executemany(
-        'INSERT INTO EMPLOYEES (NAME) VALUES (?)',
-        [('Alice',), ('Bob',), ('Charlie',)]
-    )
-    conn.commit()  # 変更を保存
-'''
-'''
+#    # サンプルデータを追加
+#    cursor.executemany(
+#        'INSERT INTO EMPLOYEES (NAME) VALUES (?)',
+#        [('Alice',), ('Bob',), ('Charlie',)]
+#    )
+#    conn.commit()  # 変更を保存
 '''
 #code_8_3:tkinterを使ってボタンのあるウィンドウを作成する(ウィンドウアプリケーションの作成)
 #標準ライブラリのtkinterのみでなく，Kivy，PyQt，wxPythonなどの外部ライブラリも有名
@@ -131,13 +129,45 @@ response = openai.ChatCompletion.create(
 print(response.choices[0]["message"]["content"].strip())
 '''
 
-#code_8_7:カレールウの月別の支出額をグラフ化する
+#code_8_7:カレールウの月別の支出額をグラフ化する(月毎のデータを表示)
 import pandas as pd             #pandasライブラリをpdとして扱う．データ分析・表計算用ライブラリ．
-#from matplotlib import plot    #pnadas.plot()が内部でmatplotlibを呼び出すためこの記述は不要．
+import matplotlib.pyplot as plt
 
-df = pd.read_csv('curry.csv', encoding = 'Shift_JIS')   #csvファイルの読み込み，データフレームdfへの格納．日本語を含むcsvを想定しShift_JISを指定．
+df = pd.read_csv('curry.csv', encoding = 'Shift_JIS', sep = ',')   #csvファイルの読み込み，データフレームdfへの格納．日本語を含むcsvを想定しShift_JISを指定．
 df['month'] = pd.to_datetime(df['時間軸(月次)'],
-                             format = '%Y年%m月').dt.month            #"時間軸(月次)"という列を日付型に変換し，「月」の部分だけを取り出して新しい列"month"を追加．例："2024年03月" → 3
-df = df.groupby('month').mean() #"month"列ごとにグループ化して，各月の平均値を計算．月別の平均データが算出される．
-df.mean(axis = 1)               #各月(行)の平均値を算出．(※列が複数ある場合，それらの平均を取る．)
-df.mean(axis = 1).plot()         #pandasがmatplotlibを使って可視化する．上記の平均値をグラフ化．
+                format = '%Y年%m月').dt.month                 #"時間軸(月次)"という列を日付型に変換し，「月」の部分だけを取り出して新しい列"month"を追加．例："2024年03月" → 3
+#print(df.dtypes)
+df = df.groupby('month')[['地域A消費量', '地域B消費量']].mean()   #"month"列ごとにグループ化して，各月の平均値を計算(同じ月がある場合)．月別の平均データが算出される．
+monthly_avg = df.mean(axis = 1)                                 #各月(axis=1 → 行, axis = 0 → 列方向)について，複数項目の平均値を算出．(※列が複数ある場合，それらの平均を取る．)
+
+#monthly_avg.plot(title = 'Monthly Average', marker = 'o')         #pandasで簡単に描画する場合．上記の平均値をグラフ化．
+plt.plot(monthly_avg, color = 'orange', linestyle = '--', linewidth = 2, markersize = 8, marker = 'o')                             #matplotlibは図の描画に関して自由度が高いため推奨．
+plt.title('Monthly Average')
+plt.xlabel('Month')
+plt.ylabel('Average')
+plt.grid(True)
+
+plt.show()
+
+#code_8_7:お試し(年月毎のデータを表示)
+import pandas as pd
+import matplotlib.pyplot as plt
+
+df2 = pd.read_csv('curry.csv', encoding = 'Shift_JIS', sep = ',')
+dates = pd.to_datetime(df2['時間軸(月次)'], format = '%Y年%m月')
+df2['year'] = dates.dt.year
+df2['month'] = dates.dt.month
+
+df2 = df2.groupby(['year','month'])[['地域A消費量', '地域B消費量']].mean()
+monthly_avg = df2.mean(axis =1)
+#monthly_avg.indexが(year, month)のタプルのままではグラフ化不可．文字列2024-01のように変換する．
+monthly_avg.index = [f'{y}-{m:02d}' for y, m in monthly_avg.index]
+
+plt.plot(monthly_avg, color = 'green', linestyle = '-', linewidth = 2, markersize = 8, marker = 'x')
+plt.title('Monthly Average (V2)')
+plt.xticks(rotation = 45)
+plt.xlabel('Month')
+plt.ylabel('Average')
+plt.grid(True)
+
+plt.show()
