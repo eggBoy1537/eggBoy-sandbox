@@ -24,6 +24,8 @@ while True:
     if event.startswith('-btn'):            #-btnから始まっていればボタンが押されたと判定する．
         #ボタンのキーからラベルを取り出す
         label = window[event].ButtonText                #イベントに応じたラベルを取得する．別途コードの下に説明記載．
+#        print(window[event].ButtonText)
+#        print(type(window[event].ButtonText))
         eg.popup(f'{event}={label}が押されました!')        #イベントに応じたキー名とラベルを別ウィンドウで表示する
 window.close()
 
