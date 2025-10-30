@@ -27,7 +27,7 @@ def go_dungeon(player_name, enemy):
 
 def main():
     is_player = False
-    #プレイヤー名入力
+    #プレイヤー名入力および入力確認
     while is_player == False:
         player = input('プレイヤーを入力してください>')
         if player == '':
@@ -38,7 +38,7 @@ def main():
     print('*** Puzzle & Monsters ***')
     #敵モンスターの作成
 
-
+    #倒したモンスター数のカウントおよび表示
     num_defeated = go_dungeon(player)
     if num_defeated == 5:
         print('*** GAME CLEARED!! ***')
