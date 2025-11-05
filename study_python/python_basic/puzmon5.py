@@ -1,5 +1,5 @@
 '''
-作成日：2025年11月4日
+作成日：2025年11月5日
 '''
 
 #インポート
@@ -25,32 +25,6 @@ ELEMENT_COLORS = {
 }
 
 #関数宣言
-def on_player_turn(party, e_mon):
-    print(f'【{party['プレイヤー名']}のターン】（HP = {party['HP']}）')
-    cmd = input('コマンド?>')
-    do_attack(e_mon, cmd)
-    return None
-
-def on_enemy_turn(party, e_mon):
-    print(f'【', end = '')
-    print_monster_name(e_mon)
-    print(f'のターン】（HP = {e_mon['hp']}）')
-    do_enemy_attack(party)
-    return None
-
-def do_attack(e_mon, command):
-    base_dmg = hash(command) % 50                                   #入力コマンドをハッシュ関数で変換し基準ダメージを計算．
-    dmg = int(random.uniform(base_dmg * 0.9, base_dmg * 1.1))       #実際に敵に与えるダメージは基準ダメージの±10%．小数点以下切り捨て．
-    e_mon['hp'] -= dmg
-    print(f'{dmg}のダメージを与えた')
-    return None
-
-def do_enemy_attack(party):
-    dmg = 200
-    party['HP'] -= dmg
-    print(f'{dmg}のダメージを受けた')
-    return None
-
 def print_monster_name(mon):
     global ELEMENT_SYMBOLS, ELEMENT_COLORS
     mon_name = mon['name']
@@ -59,62 +33,6 @@ def print_monster_name(mon):
     color  = ELEMENT_COLORS[mon_element]
     print(f'\033[3{color}m{symbol}{mon_name}{symbol}\033[0m', end='')       #カラー文字表示：\033[3色コードm出力文字列\033[0m  #カラー背景表示：\033[4色コードm出力文字列\033[0m  ※「0\33[0m」はカラー指示リセット．
     return None
-
-def do_battle(party, e_mon):
-    print_monster_name(e_mon)
-    print(f'が現れた！')
-    while True:
-        on_player_turn(party, e_mon)
-        if e_mon['hp'] <= 0:
-            break
-        on_enemy_turn(party, e_mon)
-        if party['HP'] <= 0:
-            print(f'パーティのHPは0になった')
-            return 0                            #パーティが負けた時は倒した敵の数をカウントアップしないため0を返して即関数から抜ける．
-    print_monster_name(e_mon)
-    print(f'を倒した！')
-    return 1
-
-def show_party(party_inf):
-    a_mon_list = party_inf['味方モンスター']
-    print('<パーティ編成>----------------------')
-    for a_mon in a_mon_list:
-        print_monster_name(a_mon)
-        print(f'HP = {a_mon['hp']} 攻撃 = {a_mon['ap']} 防御 = {a_mon['dp']}')
-    print('----------------------------------')
-    return None
-
-def go_dungeon(party, enemies):
-    win_cnt = 0
-    print(f'{party['プレイヤー名']}のパーティ(HP = {party['最大HP']})はダンジョンに到着した')
-    show_party(party)
-    #倒したモンスター数カウント
-    for mon in enemies:
-        win_cnt += do_battle(party, mon)
-        if party['HP'] <= 0:
-            print(f'{party['プレイヤー名']}はダンジョンから逃げ出した')
-            return win_cnt
-        else:
-            print(f'{party['プレイヤー名']}はさらに奥へと進んだ')
-            print('=======================')
-
-    print(f'{party['プレイヤー名']}はダンジョンを制覇した')
-    return win_cnt
-
-def organize_party(player_name, allies):
-    hp_list = list()
-    max_hp_list = list()
-    dp_list = list()
-    for a_mon in allies:
-        hp_list.append(a_mon['hp'])
-        max_hp_list.append(a_mon['max_hp'])
-        dp_list.append(a_mon['dp'])
-
-    hp_all = sum(hp_list)
-    max_hp_all = sum(max_hp_list)
-    dp_all = sum(dp_list) / len(allies)
-    party = {'プレイヤー名' : player_name, '味方モンスター' : allies, 'HP' : hp_all, '最大HP' : max_hp_all, '防御力' : dp_all}
-    return party
 
 def main():
     is_player = False
@@ -148,6 +66,79 @@ def main():
     else:
         print('*** GAME OVER!! ***')
     print(f'倒したモンスター数={num_defeated}')
+
+def organize_party(player_name, allies):
+    hp_all = sum([a_mon['hp'] for a_mon in allies])
+    max_hp_all = sum([a_mon['max_hp'] for a_mon in allies])
+    dp_all = sum([a_mon['dp'] for a_mon in allies]) / len(allies)
+    party = {'プレイヤー名' : player_name, '味方モンスター' : allies, 'HP' : hp_all, '最大HP' : max_hp_all, '防御力' : dp_all}
+    return party
+
+def go_dungeon(party, enemies):
+    win_cnt = 0
+    print(f'{party['プレイヤー名']}のパーティ(HP = {party['最大HP']})はダンジョンに到着した')
+    show_party(party)
+    #倒したモンスター数カウント
+    for mon in enemies:
+        win_cnt += do_battle(party, mon)
+        if party['HP'] <= 0:
+            print(f'{party['プレイヤー名']}はダンジョンから逃げ出した')
+            return win_cnt
+        else:
+            print(f'{party['プレイヤー名']}はさらに奥へと進んだ')
+            print('=======================')
+    print(f'{party['プレイヤー名']}はダンジョンを制覇した')
+    return win_cnt
+
+def show_party(party_inf):
+    a_mon_list = party_inf['味方モンスター']
+    print('<パーティ編成>----------------------')
+    for a_mon in a_mon_list:
+        print_monster_name(a_mon)
+        print(f'HP = {a_mon['hp']} 攻撃 = {a_mon['ap']} 防御 = {a_mon['dp']}')
+    print('----------------------------------')
+    return None
+
+def do_battle(party, e_mon):
+    print_monster_name(e_mon)
+    print(f'が現れた！')
+    while True:
+        on_player_turn(party, e_mon)
+        if e_mon['hp'] <= 0:
+            break
+        on_enemy_turn(party, e_mon)
+        if party['HP'] <= 0:
+            print(f'パーティのHPは0になった')
+            return 0                            #パーティが負けた時は倒した敵の数をカウントアップしないため0を返して即関数から抜ける．
+    print_monster_name(e_mon)
+    print(f'を倒した！')
+    return 1
+
+def on_player_turn(party, e_mon):
+    print(f'【{party['プレイヤー名']}のターン】（HP = {party['HP']}）')
+    cmd = input('コマンド?>')
+    do_attack(e_mon, cmd)
+    return None
+
+def do_attack(e_mon, command):
+    base_dmg = hash(command) % 50                                   #入力コマンドをハッシュ関数で変換し基準ダメージを計算．
+    dmg = int(random.uniform(base_dmg * 0.9, base_dmg * 1.1))       #実際に敵に与えるダメージは基準ダメージの±10%．小数点以下切り捨て．
+    e_mon['hp'] -= dmg
+    print(f'{dmg}のダメージを与えた')
+    return None
+
+def on_enemy_turn(party, e_mon):
+    print(f'【', end = '')
+    print_monster_name(e_mon)
+    print(f'のターン】（HP = {e_mon['hp']}）')
+    do_enemy_attack(party)
+    return None
+
+def do_enemy_attack(party):
+    dmg = 200
+    party['HP'] -= dmg
+    print(f'{dmg}のダメージを受けた')
+    return None
 
 #メイン関数の呼び出し
 main()
