@@ -36,9 +36,11 @@ def print_monster_name(mon):
     return None
 
 def fill_gems():
-    global ELEMENT_SYMBOLS, ELEMENT_COLORS
-
-    return None
+    gems_slot = list()
+    for i in range(14):
+        random_n = int(random.uniform(0, 4))
+        gems_slot.append(random_n)
+    return gems_slot
 
 #メイン関数
 def main():
@@ -110,9 +112,6 @@ def show_party(party_inf):
 def do_battle(party, e_mon):
     print_monster_name(e_mon)
     print(f'が現れた！')
-    #バトルフィールドの作成
-    bf = {'A' : ' ', 'B' : ' ', 'C' : ' ', 'D' : ' ', 'E' : ' ', 'F' : ' ', 'G' : ' ',
-                    'H' : ' ', 'I' : ' ', 'J' : ' ', 'K' : ' ', 'L' : ' ', 'M' : ' ', 'N' : ' ', }
     while True:
         on_player_turn(party, e_mon)
         if e_mon['hp'] <= 0:
@@ -127,6 +126,12 @@ def do_battle(party, e_mon):
 
 def on_player_turn(party, e_mon):
     print(f'【{party['プレイヤー名']}のターン】（HP = {party['HP']} / {party['最大HP']}）')
+    show_battle_field(party, e_mon)
+    cmd = input('コマンド? >> ')
+    do_attack(e_mon, cmd)
+    return None
+
+def show_battle_field(party, e_mon):
     print('バトルフィールド')
     print_monster_name(e_mon)
     print(f'HP = {e_mon['hp']} / {e_mon['max_hp']}\n')
@@ -134,19 +139,19 @@ def on_player_turn(party, e_mon):
     for a_mon_name in a_mon_list:
         print_monster_name(a_mon_name)
     print(f'\nHP = {party['HP']} / {party['最大HP']}')
-    show_battle_field()
-    cmd = input('コマンド? >> ')
-    do_attack(e_mon, cmd)
-    return None
-
-def show_battle_field():
+    print('---------------------------')
+    print('A B C D E F G H I J K L M N')
     print_gems()
+    print('\n---------------------------')
     return None
 
 def print_gems():
-    print('---------------------------')
-
-    print('---------------------------')
+    global ELEMENT_SYMBOLS, ELEMENT_COLORS
+    gems_symbol = [symbol for symbol in ELEMENT_SYMBOLS.values()]
+    gems_color = [color for color in ELEMENT_COLORS.values()]
+    gems_slot = fill_gems()
+    for s in gems_slot:
+        print(f'\033[4{gems_color[s]}m{gems_symbol[s]}\033[0m ', end='')
     return None
 
 def do_attack(e_mon, command):
