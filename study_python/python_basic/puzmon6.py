@@ -28,19 +28,21 @@ ELEMENT_COLORS = {
 #ユーティリティ関数
 def print_monster_name(mon):
     global ELEMENT_SYMBOLS, ELEMENT_COLORS
-    mon_name = mon['name']
     mon_element = mon['element']
     symbol = ELEMENT_SYMBOLS[mon_element]
     color  = ELEMENT_COLORS[mon_element]
-    print(f'\033[4{color}m{symbol}{mon_name}{symbol}\033[0m ', end='')       #カラー背景表示：\033[4色コードm出力文字列\033[0m  #カラー背景表示：\033[4色コードm出力文字列\033[0m  ※「0\33[0m」はカラー指示リセット．
+    print(f'\033[4{color}m{symbol}{mon['name']}{symbol}\033[0m ', end='')       #カラー背景表示：\033[4色コードm出力文字列\033[0m  #カラー背景表示：\033[4色コードm出力文字列\033[0m  ※「0\33[0m」はカラー指示リセット．
     return None
 
-def fill_gems():
-    gems_slot = list()
-    for i in range(14):
-        random_n = int(random.uniform(0, 4))
-        gems_slot.append(random_n)
-    return gems_slot
+def fill_gems(gems):
+    global ELEMENT_SYMBOLS
+    new_gems = gems[:]          #gemsのコピーをnew_gemsとして定義．
+    now_gems_len = len(gems)
+    req_gems = 14 - now_gems_len
+    for i in range(req_gems):
+        random_n = int(random.uniform(0, 4))        #各属性を0~4としてスロット(リスト)を作成
+        new_gems.append(random_n)
+    return new_gems
 
 #メイン関数
 def main():
@@ -112,8 +114,11 @@ def show_party(party_inf):
 def do_battle(party, e_mon):
     print_monster_name(e_mon)
     print(f'が現れた！')
+    gems = []
+    gems = fill_gems(gems)
+    battle_field = {'enemy': e_mon, 'party' : party, 'gems' : gems}
     while True:
-        on_player_turn(party, e_mon)
+        on_player_turn(battle_field)
         if e_mon['hp'] <= 0:
             break
         on_enemy_turn(party, e_mon)
@@ -124,32 +129,33 @@ def do_battle(party, e_mon):
     print(f'を倒した！')
     return 1
 
-def on_player_turn(party, e_mon):
+def on_player_turn(battle_field):
+    (party, e_mon) = (battle_field['party'], battle_field['enemy'])
     print(f'【{party['プレイヤー名']}のターン】（HP = {party['HP']} / {party['最大HP']}）')
-    show_battle_field(party, e_mon)
+    show_battle_field(battle_field)
     cmd = input('コマンド? >> ')
     do_attack(e_mon, cmd)
     return None
 
-def show_battle_field(party, e_mon):
+def show_battle_field(battle_field):
+    (party, e_mon) = (battle_field['party'], battle_field['enemy'])
     print('バトルフィールド')
     print_monster_name(e_mon)
     print(f'HP = {e_mon['hp']} / {e_mon['max_hp']}\n')
-    a_mon_list = party['味方モンスター']
-    for a_mon_name in a_mon_list:
+    for a_mon_name in party['味方モンスター']:
         print_monster_name(a_mon_name)
     print(f'\nHP = {party['HP']} / {party['最大HP']}')
     print('---------------------------')
     print('A B C D E F G H I J K L M N')
-    print_gems()
+    print_gems(battle_field['gems'])
     print('\n---------------------------')
     return None
 
-def print_gems():
+def print_gems(gems):
     global ELEMENT_SYMBOLS, ELEMENT_COLORS
     gems_symbol = [symbol for symbol in ELEMENT_SYMBOLS.values()]
     gems_color = [color for color in ELEMENT_COLORS.values()]
-    gems_slot = fill_gems()
+    gems_slot = fill_gems(gems)
     for s in gems_slot:
         print(f'\033[4{gems_color[s]}m{gems_symbol[s]}\033[0m ', end='')
     return None
