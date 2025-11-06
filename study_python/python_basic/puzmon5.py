@@ -25,6 +25,7 @@ ELEMENT_COLORS = {
 }
 
 #関数宣言
+#ユーティリティ関数
 def print_monster_name(mon):
     global ELEMENT_SYMBOLS, ELEMENT_COLORS
     mon_name = mon['name']
@@ -34,6 +35,7 @@ def print_monster_name(mon):
     print(f'\033[3{color}m{symbol}{mon_name}{symbol}\033[0m', end='')       #カラー文字表示：\033[3色コードm出力文字列\033[0m  #カラー背景表示：\033[4色コードm出力文字列\033[0m  ※「0\33[0m」はカラー指示リセット．
     return None
 
+#メイン関数
 def main():
     is_player = False
     #プレイヤー名入力および入力確認
@@ -67,6 +69,7 @@ def main():
         print('*** GAME OVER!! ***')
     print(f'倒したモンスター数={num_defeated}')
 
+#ビジネスロジック関数
 def organize_party(player_name, allies):
     hp_all = sum([a_mon['hp'] for a_mon in allies])
     max_hp_all = sum([a_mon['max_hp'] for a_mon in allies])
