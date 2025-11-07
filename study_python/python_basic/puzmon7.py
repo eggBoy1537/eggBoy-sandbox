@@ -23,6 +23,7 @@ ELEMENT_COLORS = {
     '命' : '5',
     '無' : '7',
 }
+SET = 'ABCDEFGHIJKLMN'
 
 #関数宣言
 #ユーティリティ関数
@@ -43,6 +44,37 @@ def fill_gems(gems):
         random_n = int(random.uniform(0, 4))        #各属性を0~4としてスロット(リスト)を作成
         new_gems.append(random_n)
     return new_gems
+
+def move_gem(gems, cmd):
+    global SET
+    tmp = list(SET)
+    cmd1_index = tmp.index(f'{cmd[0]}')
+    cmd2_index = tmp.index(f'{cmd[1]}')
+    #宝石の移動方向を変数として定義．(1:右方向，-1:左方向)
+    direction = 1 if cmd1_index < cmd2_index else -1
+
+    for n in range(abs(cmd1_index - cmd2_index)):
+        tmp_gem = gems[cmd1_index + direction]
+        gems[cmd1_index + direction] = gems[cmd1_index]
+        gems[cmd1_index] = tmp_gem
+        cmd1_index += direction
+        print_gems(gems)
+        '''
+        #ChatGPTのアドバイス↓
+        next_index = cmd1_index + direction
+        # 宝石を交換
+        gems[cmd1_index], gems[next_index] = gems[next_index], gems[cmd1_index]
+        cmd1_index = next_index
+        print_gems(gems)
+        '''
+
+
+    swap_gem(gems, cmd)
+    return None
+
+def swap_gem(gems, cmd):
+
+    return None
 
 #メイン関数
 def main():
@@ -133,11 +165,16 @@ def on_player_turn(battle_field):
     (party, e_mon) = (battle_field['party'], battle_field['enemy'])
     print(f'【{party['プレイヤー名']}のターン】（HP = {party['HP']} / {party['最大HP']}）')
     show_battle_field(battle_field)
-    cmd = input('コマンド? >> ')
-    do_attack(e_mon, cmd)
+    while True:
+        cmd = input('コマンド? >> ')
+        if check_valid_command(cmd) == 1:
+            break
+    move_gem(battle_field['gems'], cmd)
+    evaluate_gems(e_mon, cmd)
     return None
 
 def show_battle_field(battle_field):
+    global SET
     (party, e_mon) = (battle_field['party'], battle_field['enemy'])
     print('バトルフィールド')
     print_monster_name(e_mon)
@@ -146,7 +183,9 @@ def show_battle_field(battle_field):
         print_monster_name(a_mon_name)
     print(f'\nHP = {party['HP']} / {party['最大HP']}')
     print('---------------------------')
-    print('A B C D E F G H I J K L M N')
+    for set in SET:
+        print(f'{set} ', end = '')
+    print('')
     print_gems(battle_field['gems'])
     print('\n---------------------------')
     return None
@@ -158,6 +197,25 @@ def print_gems(gems):
     gems_slot = fill_gems(gems)
     for s in gems_slot:
         print(f'\033[4{gems_color[s]}m{gems_symbol[s]}\033[0m ', end='')
+    print('')
+    return None
+
+def check_valid_command(cmd):
+    global SET
+    #2文字か？，同じ文字ではないか？，　A~Nの大文字アルファベットか？をチェック
+    if len(cmd) != 2:
+        print('アルファベット2文字を入力してください．')
+        return 0
+    elif cmd[0] == cmd[1]:
+        print('異なる2文字を入力してください．')
+        return 0
+    elif not all(ch in SET for ch in cmd):
+        print('A~Nの大文字アルファベットで入力してください．')
+        return 0
+    return 1
+
+def evaluate_gems(e_mon, command):
+    do_attack(e_mon, command)
     return None
 
 def do_attack(e_mon, command):
